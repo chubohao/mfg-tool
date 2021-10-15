@@ -16,7 +16,7 @@
       <!--burn the uboot to NAND: -->
       <CMD state="Updater" type="push" body="$ mount -t debugfs debugfs /sys/kernel/debug">Mounting debugfs</CMD>
       <CMD state="Updater" type="push" body="$ flash_erase /dev/mtd0 0 0">Erasing Boot partition</CMD>
-      <CMD state="Updater" type="push" body="send" file="files/u-boot.imx" ifdev="MX6ULL">Sending u-boot.imx</CMD>
+      <CMD state="Updater" type="push" body="send" file="files/u-boot-dtb.imx" ifdev="MX6ULL">Sending u-boot.imx</CMD>
       <CMD state="Updater" type="push" body="$ kobs-ng init -x -v --chip_0_device_path=/dev/mtd0 $FILE">Flashing Bootloader</CMD>
 
       <!--burn the kernel to NAND: -->
