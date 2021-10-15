@@ -1,0 +1,44 @@
+ <UCL>
+   <CFG>
+      <STATE name="BootStrap" dev="MX6ULL" vid="15A2" pid="0080"/>
+      <STATE name="Updater"   dev="MSC" vid="066F" pid="37FF"/>
+   </CFG>
+   <LIST name="NAND Flash" desc="Choose NAND as media">
+      <CMD state="BootStrap" type="boot" body="BootStrap" file ="firmware/u-boot.imx" ifdev="MX6ULL">Loading U-boot</CMD>
+      <CMD state="BootStrap" type="load" file="firmware/zImage" address="0x80800000"
+         loadSection="OTH" setSection="OTH" HasFlashHeader="FALSE" ifdev="MX6SL MX6SX MX7D MX6UL MX6ULL">Loading Kernel.</CMD>
+      <CMD state="BootStrap" type="load" file="firmware/fsl-image-mfgtool-initramfs-imx_mfgtools.cpio.gz.u-boot" address="0x83800000"
+               loadSection="OTH" setSection="OTH" HasFlashHeader="FALSE" ifdev="MX6SL MX6SX MX7D MX6UL MX6ULL">Loading Initramfs.</CMD>
+      <CMD state="BootStrap" type="load" file="firmware/nand.dtb" address="0x83000000"
+         loadSection="OTH" setSection="OTH" HasFlashHeader="FALSE" ifdev="MX6ULL">Loading device tree.</CMD>
+      <CMD state="BootStrap" type="jump" > Jumping to OS image. </CMD>
+      
+      <!--burn the uboot to NAND: -->
+      <CMD state="Updater" type="push" body="$ mount -t debugfs debugfs /sys/kernel/debug">Mounting debugfs</CMD>
+      <CMD state="Updater" type="push" body="$ flash_erase /dev/mtd0 0 0">Erasing Boot partition</CMD>
+      <CMD state="Updater" type="push" body="send" file="files/u-boot.imx" ifdev="MX6ULL">Sending u-boot.imx</CMD>
+      <CMD state="Updater" type="push" body="$ kobs-ng init -x -v --chip_0_device_path=/dev/mtd0 $FILE">Flashing Bootloader</CMD>
+
+      <!--burn the kernel to NAND: -->
+      <CMD state="Updater" type="push" body="$ flash_erase /dev/mtd2 0 0">Erasing Kernel partition</CMD>
+      <CMD state="Updater" type="push" body="send" file="files/zImage" ifdev="MX6ULL">Sending zImage</CMD>
+      <CMD state="Updater" type="push" body="$ nandwrite -p /dev/mtd2 -p $FILE">Flashing Kernel</CMD>
+
+      <CMD state="Updater" type="push" body="$ flash_erase /dev/mtd3 0 0">Erasing dtb partition</CMD>
+	   <CMD state="Updater" type="push" body="send" file="files/100zzu.dtb" ifdev="MX6ULL">Sending Device Tree file</CMD>
+	   <CMD state="Updater" type="push" body="$ nandwrite -p /dev/mtd3 -p $FILE">Flashing dtb</CMD>
+
+      <!--burn the rootfs to NAND: -->
+      <CMD state="Updater" type="push" body="$ flash_erase /dev/mtd4 0 0">Erasing rootfs partition</CMD>
+      <CMD state="Updater" type="push" body="$ ubiformat /dev/mtd4"/>
+      <CMD state="Updater" type="push" body="$ ubiattach /dev/ubi_ctrl -m 4">Attaching UBI partition</CMD>
+      <CMD state="Updater" type="push" body="$ ubimkvol /dev/ubi0 -Nrootfs -m"/>
+      <CMD state="Updater" type="push" body="$ mkdir -p /mnt/mtd4"/>
+      <CMD state="Updater" type="push" body="$ mount -t ubifs ubi0:rootfs /mnt/mtd4"/>
+      <CMD state="Updater" type="push" body="pipe tar -jxv -C /mnt/mtd4" file="files/100zzu.rootfs.tar.bz2" ifdev="MX6ULL">Sending and writting rootfs</CMD>
+      <CMD state="Updater" type="push" body="frf">Finishing rootfs write</CMD>
+      <CMD state="Updater" type="push" body="$ umount /mnt/mtd4">Unmounting rootfs partition</CMD>
+
+      <CMD state="Updater" type="push" body="$ echo Update Complete!">Done</CMD>
+   </LIST>
+   </UCL>
