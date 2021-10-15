@@ -1,2 +1,1 @@
-# mfg-tool
-# mfg-tool
+NXP i.MX NAND FLASH
